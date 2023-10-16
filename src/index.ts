@@ -1,5 +1,5 @@
-import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
+import { BOT_TOKEN } from './config';
 
 const client = new Client({
   intents: [
@@ -22,4 +22,4 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.login(process.env.BOT_TOKEN);
+client.login(BOT_TOKEN);
