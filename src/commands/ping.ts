@@ -3,10 +3,12 @@ import { Command } from '../types';
 const ping: Command = {
   name: 'ping',
   description: 'Ping, Pong!',
-  configureSlashCommand(sc) {
-    return sc;
+  async execute(interaction) {
+    await interaction.reply({
+      content: "Pong!",
+      ephemeral: true
+    });
   },
-  execute(interaction) {},
 };
 
 export default ping;
