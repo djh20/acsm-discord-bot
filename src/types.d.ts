@@ -3,7 +3,7 @@ import { AutocompleteInteraction, ChatInputCommandInteraction, Interaction, Slas
 export interface Command {
   name: string;
   description: string;
-  configureSlashCommand?: (sc: SlashCommandBuilder) => void;
+  configureSlashCommand?: (slashCommand: SlashCommandBuilder) => void;
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }

@@ -5,9 +5,9 @@ import logger from '../logger';
 const championship: Command = {
   name: 'championship',
   description: 'View & manage championships.',
-  configureSlashCommand(sc) {
-    sc.setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
-    sc.addSubcommand(sub => 
+  configureSlashCommand(slashCommand) {
+    slashCommand.setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+    slashCommand.addSubcommand(sub => 
       sub
         .setName('add')
         .setDescription('Add a new championship.')
@@ -18,7 +18,7 @@ const championship: Command = {
             .setRequired(true)
         )
     );
-    sc.addSubcommand(sub => 
+    slashCommand.addSubcommand(sub => 
       sub
         .setName('remove')
         .setDescription('Remove a championship.')
