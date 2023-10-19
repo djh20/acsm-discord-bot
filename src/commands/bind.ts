@@ -1,5 +1,6 @@
 import { PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
+import { GuildSchema, db } from '../db';
 
 const bind: Command = {
   name: 'bind',
@@ -9,7 +10,7 @@ const bind: Command = {
     slashCommand.addStringOption(option =>
       option
         .setName('url')
-        .setDescription('URL of ACSM instance.')
+        .setDescription('URL of ACSM instance (e.g. https://acsm.example.com).')
         .setRequired(true)
     );
     slashCommand.addStringOption(option =>
@@ -26,13 +27,22 @@ const bind: Command = {
     );
   },
   async execute(interaction) {
-    const url = interaction.options.getString("url");
-    const username = interaction.options.getString("username");
-    const password = interaction.options.getString("password");
+    const baseUrl = interaction.options.getString('url');
+    const username = interaction.options.getString('username');
+    const password = interaction.options.getString('password');
+
+    if (!baseUrl || !username || !password) {
+      return Error('Not enough arguments');
+    }
+
+    const doc = await db.load<GuildSchema>(interaction.guildId, {});
+    doc.data.acsm = { baseUrl, username, password };
+    await db.save(doc, true);
+
     await interaction.reply({
-      content: `${url} | ${username} | ${password}`,
+      content: `Successfully bound to ${baseUrl}`,
       ephemeral: true
-    })
+    });
   },
 };
 

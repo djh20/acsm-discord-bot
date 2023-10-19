@@ -5,5 +5,5 @@ export interface Command {
   description: string;
   configureSlashCommand?: (slashCommand: SlashCommandBuilder) => void;
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  execute: (interaction: ChatInputCommandInteraction<'cached' | 'raw'>) => Promise<void | Error>;
 }

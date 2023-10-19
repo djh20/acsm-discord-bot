@@ -1,6 +1,8 @@
 import { PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
 import logger from '../logger';
+import * as acsm from '../acsm';
+import { GuildSchema, db } from '../db';
 
 const championship: Command = {
   name: 'championship',
@@ -32,8 +34,6 @@ const championship: Command = {
     );
   },
   async autocomplete(interaction) {
-    logger.info(`Focused: ${interaction.options.getFocused()}`)
-    
     // Dummy Data
     const championships = [
       {
@@ -55,12 +55,38 @@ const championship: Command = {
     );
   },
   async execute(interaction) {
-    logger.info(interaction.options.get('id'));
+    const sub = interaction.options.getSubcommand();
+    const id = interaction.options.getString('id');
 
-    await interaction.reply({
-      content: 'Hello!',
-      ephemeral: true
-    });
+    if (!id) {
+      return Error("No ID specified");
+    }
+
+    if (sub == 'add') {
+      const doc = await db.load<GuildSchema>(interaction.guildId, {});
+      if (doc.data.acsm) {
+        const cookie = await acsm.authenticate(
+          doc.data.acsm.baseUrl, 
+          doc.data.acsm.username, 
+          doc.data.acsm.password
+        );
+
+        const championshipInfo = await acsm.getChampionshipInfo(
+          doc.data.acsm.baseUrl,
+          cookie,
+          id
+        );
+
+        logger.info(championshipInfo);
+      }
+      db.release(doc);
+
+    } else if (sub == 'remove') {
+      await interaction.reply({
+        content: 'Coming soon!',
+        ephemeral: true
+      });
+    }
   },
 };
 
