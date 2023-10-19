@@ -1,10 +1,10 @@
 import { Command } from './types';
 import ping from './commands/ping';
 import championship from './commands/championship';
-import authenticate from './commands/authenticate';
+import bind from './commands/bind';
 
 export const commands: Command[] = [
   ping,
   championship,
-  authenticate
+  bind
 ];
