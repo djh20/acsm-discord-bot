@@ -1,12 +1,14 @@
-import { LunaDB } from './luna';
-import { DB_DIR } from './config';
+import mongoose from 'mongoose';
+import { MONGO_URI } from './config';
+import { Logger } from './logger';
 
-export const db = new LunaDB(DB_DIR);
+const logger = new Logger('DB');
 
-export interface GuildSchema {
-  acsm?: {
-    baseUrl: string;
-    username: string;
-    password: string;
-  }
+export async function connectToMongo() {
+  if (!MONGO_URI) throw Error('Unable to connect to DB: MONGO_URI environment variable not set.');
+  await mongoose.connect(MONGO_URI);
+
+  const dbName = mongoose.connection.db.databaseName;
+  
+  logger.info(`Connected to database: ${dbName}`);
 }

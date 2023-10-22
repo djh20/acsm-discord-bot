@@ -1,8 +1,7 @@
-import { PermissionFlagsBits } from 'discord.js';
-import { Command } from '../types';
-import logger from '../logger';
-import * as acsm from '../acsm';
-import { GuildSchema, db } from '../db';
+import { Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { Command } from '../interaction';
+import { fetchChampionshipInfo } from '../acsm/championship';
+import { GuildConfig } from '../models/GuildConfig';
 
 const championship: Command = {
   name: 'championship',
@@ -59,33 +58,35 @@ const championship: Command = {
     const id = interaction.options.getString('id');
 
     if (!id) {
-      return Error("No ID specified");
+      throw Error("Invalid arguments.");
     }
 
-    if (sub == 'add') {
-      const doc = await db.load<GuildSchema>(interaction.guildId, {});
-      if (doc.data.acsm) {
-        const cookie = await acsm.authenticate(
-          doc.data.acsm.baseUrl, 
-          doc.data.acsm.username, 
-          doc.data.acsm.password
-        );
+    await interaction.deferReply({ ephemeral: true });
 
-        const championshipInfo = await acsm.getChampionshipInfo(
-          doc.data.acsm.baseUrl,
-          cookie,
+    if (sub == 'add') {
+      const guildConfig = await GuildConfig.findById(interaction.guildId);
+      if (guildConfig?.acsm) {
+
+        const { info, cookie } = await fetchChampionshipInfo(
+          guildConfig.acsm.baseUrl,
+          guildConfig.acsm.auth,
           id
         );
 
-        logger.info(championshipInfo);
+        await guildConfig.saveCookie(cookie);
+
+        const embed = new EmbedBuilder()
+          .setColor(Colors.Green)
+          .setDescription(`Successfully added **${info.Name}**`);
+
+        await interaction.editReply({ embeds: [embed] });
+
+      } else {
+        throw Error("You must bind to an ACSM instance to use this command.");
       }
-      db.release(doc);
 
     } else if (sub == 'remove') {
-      await interaction.reply({
-        content: 'Coming soon!',
-        ephemeral: true
-      });
+      throw Error('Command not implemented.');
     }
   },
 };

@@ -1,9 +1,12 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { BOT_TOKEN } from './config';
-import logger from './logger';
+import { ADMIN_USER_ID, BOT_TOKEN } from './config';
+import { Logger } from './logger';
 import { syncCommands } from './sync';
 import { commands } from './catalog';
 import { handleInteraction } from './interaction';
+import { connectToMongo } from './db';
+
+const logger = new Logger('MAIN');
 
 const client = new Client({
   intents: [
@@ -19,10 +22,12 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', (message) => {
-  if (message.content == "!sync" && message.author.id == "271133982924603393" && message.inGuild()) {
+  if (message.content == "::sync" && message.author.id === ADMIN_USER_ID && message.inGuild()) {
+    // TODO: Global deploy instead of per guild.
     syncCommands(client, commands, message.guildId);
   }
 });
 
 client.on('interactionCreate', handleInteraction);
-client.login(BOT_TOKEN);
+
+connectToMongo().then(() => client.login(BOT_TOKEN));

@@ -1,6 +1,6 @@
-import { Client, Guild, GuildDefaultMessageNotifications, REST, Routes, SlashCommandBuilder } from "discord.js";
-import { Command } from "./types";
-import logger from "./logger";
+import { Client, REST, Routes, SlashCommandBuilder } from "discord.js";
+import { Command } from "./interaction";
+import { logger } from "./interaction";
 
 export async function syncCommands(client: Client, commands: Command[], guildId?: string) {
   if (!client.token || !client.application?.id) return;

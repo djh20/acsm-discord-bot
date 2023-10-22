@@ -1,6 +1,6 @@
-import { PermissionFlagsBits } from 'discord.js';
-import { Command } from '../types';
-import { GuildSchema, db } from '../db';
+import { Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { Command } from '../interaction';
+import { GuildConfig } from '../models/GuildConfig';
 
 const bind: Command = {
   name: 'bind',
@@ -32,17 +32,32 @@ const bind: Command = {
     const password = interaction.options.getString('password');
 
     if (!baseUrl || !username || !password) {
-      return Error('Not enough arguments');
+      throw Error('Invalid arguments.');
     }
 
-    const doc = await db.load<GuildSchema>(interaction.guildId, {});
-    doc.data.acsm = { baseUrl, username, password };
-    await db.save(doc, true);
+    await interaction.deferReply({ ephemeral: true });
 
-    await interaction.reply({
-      content: `Successfully bound to ${baseUrl}`,
-      ephemeral: true
+    await GuildConfig.findByIdAndUpdate(
+      interaction.guildId, 
+      { acsm: { baseUrl, auth: { username, password } } }, 
+      { upsert: true }
+    )
+
+    /*
+    await db.update<GuildSchema>(interaction.guildId, {}, (doc) => {
+      doc.acsm = {
+        baseUrl,
+        auth: { username, password }
+      };
+      return doc;
     });
+    */
+
+    const embed = new EmbedBuilder()
+      .setColor(Colors.Green)
+      .setDescription(`Successfully bound to ${baseUrl}`);
+
+    await interaction.editReply({ embeds: [embed] });
   },
 };
 

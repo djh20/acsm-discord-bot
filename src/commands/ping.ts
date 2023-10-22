@@ -1,13 +1,15 @@
-import { Command } from '../types';
+import { Colors, EmbedBuilder } from 'discord.js';
+import { Command } from '../interaction';
 
 const ping: Command = {
   name: 'ping',
   description: 'Ping, Pong!',
   async execute(interaction) {
-    await interaction.reply({
-      content: "Pong!",
-      ephemeral: true
-    });
+    const embed = new EmbedBuilder()
+      .setColor(Colors.Green)
+      .setDescription('Pong!');
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   },
 };
 

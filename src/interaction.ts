@@ -1,6 +1,8 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, Colors, EmbedBuilder, Interaction } from "discord.js";
-import { Command } from "./types";
+import { AutocompleteInteraction, ChatInputCommandInteraction, Colors, EmbedBuilder, Interaction, SlashCommandBuilder } from "discord.js";
 import { commands } from "./catalog";
+import { Logger } from "./logger";
+
+export const logger = new Logger('CMD');
 
 export function getInteractionCommand(interaction: ChatInputCommandInteraction | AutocompleteInteraction): Command | undefined {
   const command = commands.find(c => c.name === interaction.commandName);
@@ -15,8 +17,14 @@ export async function handleInteraction(interaction: Interaction) {
   if (interaction.isChatInputCommand()) {
     const command = getInteractionCommand(interaction);
     if (command) {
-      const error = await command.execute(interaction);
-      if (error) await replyWithError(interaction, error);
+      await command.execute(interaction)
+        .catch(async (reason) => {
+          let errorMessage = "Something went wrong. Please try again."
+          if (reason instanceof Error) errorMessage = reason.message;
+
+          logger.error(reason);
+          await replyWithError(interaction, errorMessage);
+        });
     }
 
   } else if (interaction.isAutocomplete()) {
@@ -27,11 +35,23 @@ export async function handleInteraction(interaction: Interaction) {
   }
 }
 
-export async function replyWithError(interaction: ChatInputCommandInteraction, error: Error) {
+export async function replyWithError(interaction: ChatInputCommandInteraction, message: string) {
   const errorEmbed = new EmbedBuilder()
     .setColor(Colors.Red)
-    .setTitle("Error")
-    .setDescription(error.message);
+    .setDescription(message);
 
-  await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+  if (interaction.deferred) {
+    await interaction.editReply({ embeds: [errorEmbed] });
+    return;
+  }
+
+  await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
+}
+
+export interface Command {
+  name: string;
+  description: string;
+  configureSlashCommand?: (slashCommand: SlashCommandBuilder) => void;
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
+  execute: (interaction: ChatInputCommandInteraction<'cached' | 'raw'>) => Promise<void>;
 }
